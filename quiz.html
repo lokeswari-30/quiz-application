@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quiz App with Circle Options</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .quiz-container {
+      background: whitesmoke;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 90%;
+      max-width: 500px;
+    }
+    #start-screen, #quiz, #score-container {
+      text-align: center;
+    }
+    .question {
+      font-size: 20px;
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    .option-container {
+      text-align: left;
+      margin-bottom: 15px;
+    }
+    .option {
+      display: flex;
+      align-items: center;
+      margin: 8px 0;
+      cursor: pointer;
+    }
+    .option input[type="radio"] {
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #2196f3;
+      border-radius: 50%;
+      margin-right: 10px;
+      position: relative;
+      transition: all 0.2s;
+    }
+    .option input[type="radio"]:checked::before {
+      content: '';
+      width: 10px;
+      height: 10px;
+      background: #2196f3;
+      border-radius: 50%;
+      position: absolute;
+      top: 4px;
+      left: 4px;
+    }
+    .btn {
+      padding: 10px 20px;
+      background-color: #2196f3;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 15px;
+    }
+    .btn:hover {
+      background-color: #1976d2;
+    }
+    #timer {
+      font-size: 18px;
+      color: #ff5722;
+      margin-bottom: 10px;
+      text-align: left;
+    }
+    #progress {
+      height: 5px;
+      background-color: #4caf50;
+      margin-bottom: 20px;
+      border-radius: 3px;
+      transition: width 0.3s;
+    }
+  </style>
+</head>
+<body>
+  <div class="quiz-container">
+    <div id="start-screen">
+      <h2>Welcome to the Quiz</h2>
+      <button class="btn" onclick="startQuiz()">Start Quiz</button>
+    </div>
+
+    <div id="quiz" style="display:none;">
+      <div id="timer">Time left: <span id="time">15</span>s</div>
+      <div id="progress" style="width: 0%;"></div>
+      <div class="question" id="question">Question text</div>
+      <form id="option-form" class="option-container"></form>
+      <button class="btn" id="next-btn">Next</button>
+    </div>
+
+    <div id="score-container" style="display:none;">
+      <h2>Your Score: <span id="score">0</span> / <span id="total">0</span></h2>
+      <button class="btn" onclick="startQuiz()">Restart Quiz</button>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        question: "What does HTML stand for?",
+        options: ["Hyper Text Markup Language", "Home Tool Markup Language", "Hyperlinks and Text Markup Language"],
+        answer: "Hyper Text Markup Language"
+      },
+      {
+        question: "Which tag is used to insert a line break in HTML?",
+        options: ["<break>", "<br>", "<lb>"],
+        answer: "<br>"
+      },
+      {
+        question: "Which HTML element contains JavaScript?",
+        options: ["<js>", "<javascript>", "<script>"],
+        answer: "<script>"
+      },
+      {
+        question: "Which CSS property controls text size?",
+        options: ["font-style", "text-size", "font-size"],
+        answer: "font-size"
+      },
+      {
+        question: "Who is the inventor of HTML?",
+        options: [ "Brendan Eich", "Tim Berners-Lee", "Dennis Ritchie"],
+        answer: "Tim Berners-Lee"
+      },
+      {
+        question: "Which HTML tag is used to make text bold?",
+        options: [ "<bold>" , "<b>" , "<stronger" ],
+        answer: "<b>"
+      },
+      {
+        question: "What is the correct HTML for adding a background color?",
+        options: [ "<body bg='yellow'>","<body style='background-color:yellow;'>","<background>yellow</background>" ],
+        answer: "<body style='background-color:yellow;'>"
+     },
+     {
+        question: "What does the <img> tag do?",
+        options: [ "Adds a table", "Displays an image","Creates a hyperlink" ],
+        answer: "Displays an image"
+     },
+     {
+         question: "Which attribute is used in <img> to specify the image source?",
+         options: ["src","link","href" ],
+         answer: "src"
+     },
+     {
+        question: "How do you create an unordered list in HTML?",
+        options: [ "<ol>", "<ul>", "<li>" ],
+        answer: "<ul>"
+     }
+    
+
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+    let timer;
+    let timeLeft = 15;
+
+    const startScreen = document.getElementById("start-screen");
+    const quiz = document.getElementById("quiz");
+    const questionEl = document.getElementById("question");
+    const optionForm = document.getElementById("option-form");
+    const nextBtn = document.getElementById("next-btn");
+    const timerEl = document.getElementById("time");
+    const progressEl = document.getElementById("progress");
+    const scoreContainer = document.getElementById("score-container");
+    const scoreEl = document.getElementById("score");
+    const totalEl = document.getElementById("total");
+
+    function startQuiz() {
+      currentQuestion = 0;
+      score = 0;
+      timeLeft = 15;
+      startScreen.style.display = "none";
+      scoreContainer.style.display = "none";
+      quiz.style.display = "block";
+      showQuestion();
+    }
+
+    function showQuestion() {
+      clearInterval(timer);
+      timeLeft = 15;
+      timerEl.textContent = timeLeft;
+      const current = questions[currentQuestion];
+      questionEl.textContent = `${currentQuestion + 1}. ${current.question}`;
+      optionForm.innerHTML = "";
+
+      current.options.forEach((option, index) => {
+        const label = document.createElement("label");
+        label.className = "option";
+
+        const input = document.createElement("input");
+        input.type = "radio";
+        input.name = "option";
+        input.value = option;
+
+        label.appendChild(input);
+        label.appendChild(document.createTextNode(option));
+        optionForm.appendChild(label);
+      });
+
+      updateProgressBar();
+      startTimer();
+    }
+
+    function startTimer() {
+      timer = setInterval(() => {
+        timeLeft--;
+        timerEl.textContent = timeLeft;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          nextBtn.click();
+        }
+      }, 1000);
+    }
+
+    nextBtn.onclick = () => {
+      const selectedOption = document.querySelector('input[name="option"]:checked');
+      if (selectedOption) {
+        if (selectedOption.value === questions[currentQuestion].answer) {
+          score++;
+        }
+      }
+
+      currentQuestion++;
+      if (currentQuestion < questions.length) {
+        showQuestion();
+      } else {
+        showScore();
+      }
+    };
+
+    function showScore() {
+      clearInterval(timer);
+      quiz.style.display = "none";
+      scoreContainer.style.display = "block";
+      scoreEl.textContent = score;
+      totalEl.textContent = questions.length;
+    }
+
+    function updateProgressBar() {
+      const percent = (currentQuestion / questions.length) * 100;
+      progressEl.style.width = percent + "%";
+    }
+  </script>
+</body>
+</html>

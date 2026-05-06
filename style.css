@@ -1,0 +1,25 @@
+h1{
+    color: rgb(221, 22, 181);
+    text-align: center;
+}
+.welcome{
+    color: blueviolet;
+}
+label{
+    color:green;
+    font-size: larger;
+}
+input{
+    color:red;
+    border:none;
+    border-bottom: solid 3px black;
+    background-color: grey;
+}
+
+.form{
+    height: 70vh;
+    width: 500px;
+    background-color: rgba(234, 141, 10, 0.2);
+    display: flex;
+    
+}
